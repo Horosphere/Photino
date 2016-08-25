@@ -1,0 +1,15 @@
+# All hidden files with exceptions
+.*
+!/.formatGen
+!/.gitignore
+
+# Caches
+*.o
+*.swp
+
+# Directories
+bin
+build
+
+# Special
+makescript
