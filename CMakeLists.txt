@@ -21,6 +21,12 @@ set(StdFeatures
 # Enable threading
 find_package(Threads REQUIRED)
 
+# Boost
+find_package(Boost 1.61.0 COMPONENTS timer REQUIRED)
+if (${Boost_FOUND})
+	include_directories(${Boost_INCLUDE_DIRS})
+	link_directories(${Boost_LIBRARY_DIR})
+endif()
 # Do not remove the following auto-generated signatures
 
 # Auto-generated. Do not edit. All changes will be undone
@@ -32,3 +38,5 @@ set(SourceFiles
 
 add_executable(Photino ${SourceFiles})
 target_link_libraries(Photino ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(Photino ${Boost_LIBRARIES})
+target_compile_features(Photino PRIVATE ${StdFeatures})
