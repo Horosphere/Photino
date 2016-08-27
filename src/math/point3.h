@@ -46,6 +46,10 @@ operator-(point3<T> const&, point3<T> const&);
 template <typename T> point3<T>
 operator-(point3<T> const&, vector3<T> const&);
 
+template <typename T> bool
+operator==(point3<T> const&, point3<T> const&);
+template <typename T> bool
+operator!=(point3<T> const&, point3<T> const&);
 
 // Implementations
 
@@ -77,6 +81,16 @@ operator-(point3<T> const& p0, vector3<T> const& p1)
 	return vector3<T>(p0.x - p1.x, p0.y - p1.y, p0.z - p1.z);
 }
 
+template <typename T> inline bool
+operator==(point3<T> const& p0, point3<T> const& p1)
+{
+	return p0.x == p1.x && p0.y == p1.y && p0.z == p1.z;
+}
+template <typename T> inline bool
+operator!=(point3<T> const& p0, point3<T> const& p1)
+{
+	return p0.x != p1.x || p0.y != p1.y || p0.z != p1.z;
+}
 
 } // namespace photino
 

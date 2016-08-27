@@ -52,6 +52,11 @@ operator/(T const&, matrix<T, m, n> const&);
 template <typename T, std::size_t m, std::size_t n, std::size_t p> matrix<T, m, p>
 operator*(matrix<T, m, n> const&, matrix<T, n, p> const&);
 
+template <typename T, std::size_t m, std::size_t n> bool
+operator==(matrix<T, m, n> const&, matrix<T, m, n> const&);
+template <typename T, std::size_t m, std::size_t n> bool
+operator!=(matrix<T, m, n> const&, matrix<T, m, n> const&);
+
 
 // Implementations
 
@@ -167,6 +172,24 @@ operator*(matrix<T, m, n> const& mat0, matrix<T, n, p> const& mat1)
 					result(j, r) += mat0(j, k) * mat1(k, r);
 			}
 }
+
+template <typename T, std::size_t m, std::size_t n> inline bool
+operator==(matrix<T, m, n> const& mat0, matrix<T, m, n> const& mat1)
+{
+	for (std::size_t j = 0; j < m; ++j)
+		for (std::size_t k = 0; k < n; ++k)
+			if (mat0(j, k) != mat1(j, k)) return false;
+	return true;
+}
+template <typename T, std::size_t m, std::size_t n> inline bool
+operator!=(matrix<T, m, n> const& mat0, matrix<T, m, n> const& mat1)
+{
+	for (std::size_t j = 0; j < m; ++j)
+		for (std::size_t k = 0; k < n; ++k)
+			if (mat0(j, k) != mat1(j, k)) return true;
+	return false;
+}
+
 
 } // namespace photino
 

@@ -67,6 +67,11 @@ operator/(vector3<T> const&, T const&);
 template <typename T> vector3<T>
 operator/(T const&, vector3<T> const&);
 
+template <typename T> bool
+operator==(vector3<T> const&, vector3<T> const&);
+template <typename T> bool
+operator!=(vector3<T> const&, vector3<T> const&);
+
 template <typename T> T norm(vector3<T> const&);
 template <typename T> T normSq(vector3<T> const&);
 template <typename T> vector3<T> unit(vector3<T> const&);
@@ -138,6 +143,17 @@ template <typename T> inline vector3<T>
 operator/(T const& s, vector3<T> const& v)
 {
 	return vector3<T>(v.x / s, v.y / s, v.z / s);
+}
+
+template <typename T> inline bool
+operator==(vector3<T> const& v0, vector3<T> const& v1)
+{
+	return v0.x == v1.x && v0.y == v1.y && v0.z == v1.z;
+}
+template <typename T> inline bool
+operator!=(vector3<T> const& v0, vector3<T> const& v1)
+{
+	return v0.x != v1.x || v0.y != v1.y || v0.z != v1.z;
 }
 
 template <typename T> inline T

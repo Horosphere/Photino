@@ -60,6 +60,11 @@ operator/(quaternion<T> const&, T const&);
 template <typename T> quaternion<T>
 operator/(T const&, quaternion<T> const&);
 
+template <typename T> bool
+operator==(quaternion<T> const&, quaternion<T> const&);
+template <typename T> bool
+operator!=(quaternion<T> const&, quaternion<T> const&);
+
 template <typename T> quaternion<T>
 conj(quaternion<T> const&);
 template <typename T> quaternion<T>
@@ -155,6 +160,16 @@ operator/(T const& s, quaternion<T> const& q)
 	return quaternion<T>(q.w / s, q.x / s, q.y / s, q.z / s);
 }
 
+template <typename T> inline bool
+operator==(quaternion<T> const& q0, quaternion<T> const& q1)
+{
+	return q0.w == q1.w && q0.x == q1.x && q0.y == q1.y && q0.z == q1.z;
+}
+template <typename T> inline bool
+operator!=(quaternion<T> const& q0, quaternion<T> const& q1)
+{
+	return q0.w != q1.w || q0.x != q1.x || q0.y != q1.y || q0.z != q1.z;
+}
 
 template <typename T> inline quaternion<T>
 conj(quaternion<T> const& q)
