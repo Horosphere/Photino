@@ -27,6 +27,11 @@ if (${Boost_FOUND})
 	include_directories(${Boost_INCLUDE_DIRS})
 	link_directories(${Boost_LIBRARY_DIR})
 endif()
+
+# Eigen
+find_package(Eigen3 REQUIRED)
+include_directories(${EIGEN3_INCLUDE_DIR})
+
 # Do not remove the following auto-generated signatures
 
 # Auto-generated. Do not edit. All changes will be undone
