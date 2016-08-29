@@ -30,6 +30,17 @@ public:
 	 */
 	template <typename T = uint8_t> T* alloc_ctor(std::size_t size);
 
+	/**
+	 * @warning This function is not responsible for in-place constructing the
+	 *  array.
+	 * @brief Allocates a continuous piece of memory capable of a T.
+	 */
+	template <typename T> T* alloc();
+	/**
+	 * @brief See \ref alloc with default constructor calls
+	 */
+	template <typename T> T* alloc_ctor();
+
 	void freeAll();
 
 private:
@@ -68,7 +79,7 @@ MemoryPool::alloc_ctor(std::size_t size)
 {
 	T* const ptr = alloc<T>(size);
 	for (std::size_t i = 0; i < size; ++i)
-		new(ptr + i) T();
+		new (ptr + i) T();
 	return ptr;
 }
 
@@ -93,6 +104,18 @@ MemoryPool::alloc(std::size_t size)
 	uint8_t* result = block + index;
 	index += size;
 	return result;
+}
+template <typename T> inline T*
+MemoryPool::alloc()
+{
+	return alloc<T>(1);
+}
+template <typename T> inline T*
+MemoryPool::alloc_ctor()
+{
+	T* ptr = alloc<T>();
+	new (ptr) T();
+	return ptr;
 }
 inline void MemoryPool::freeAll()
 {

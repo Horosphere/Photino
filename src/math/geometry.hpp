@@ -38,6 +38,15 @@ norm(Matrix<m, n> const& mat) -> decltype(mat.norm());
 template <std::size_t m, std::size_t n> auto
 unit(Matrix<m, n> const& mat) -> decltype(mat.normalized());
 
+template <int m> BoxAxisAligned<m>&
+operator|=(BoxAxisAligned<m>&, BoxAxisAligned<m> const&);
+template <int m> BoxAxisAligned<m>&
+operator&=(BoxAxisAligned<m>&, BoxAxisAligned<m> const&);
+template <int m> BoxAxisAligned<m>
+operator|(BoxAxisAligned<m> const&, BoxAxisAligned<m> const&);
+template <int m> BoxAxisAligned<m>
+operator&(BoxAxisAligned<m> const&, BoxAxisAligned<m> const&);
+
 
 // Implementations
 inline auto
@@ -54,6 +63,27 @@ template <std::size_t m, std::size_t n> inline auto
 unit(Matrix<m, n> const& mat) -> decltype(mat.normalized())
 {
 	return mat.normalized();
+}
+
+template <int m> inline BoxAxisAligned<m>&
+operator|=(BoxAxisAligned<m>& b0, BoxAxisAligned<m> const& b1)
+{
+	return b0.extend(b1);
+}
+template <int m> inline BoxAxisAligned<m>&
+operator&=(BoxAxisAligned<m>& b0, BoxAxisAligned<m> const& b1)
+{
+	return b0.clamp(b1);
+}
+template <int m> inline BoxAxisAligned<m>
+operator|(BoxAxisAligned<m> const& b0, BoxAxisAligned<m> const& b1)
+{
+	return b0.merged(b1);
+}
+template <int m> inline BoxAxisAligned<m>
+operator&(BoxAxisAligned<m> const& b0, BoxAxisAligned<m> const& b1)
+{
+	return b0.intersection(b1);
 }
 
 } // namespace photino
