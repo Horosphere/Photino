@@ -23,7 +23,7 @@ roundUpModulo(T x, T mod)
 {
 	return (x + mod - 1) & ~(mod - 1);
 }
-uint32_t roundUpPow2(uint32_t i)
+inline uint32_t roundUpPow2(uint32_t i)
 {
 	--i;
 	i |= i >> 1;
@@ -34,7 +34,7 @@ uint32_t roundUpPow2(uint32_t i)
 	++i;
 	return i;
 }
-uint64_t roundUpPow2(uint64_t i)
+inline uint64_t roundUpPow2(uint64_t i)
 {
 	--i;
 	i |= i >> 1;

@@ -33,9 +33,17 @@ using BoxAxisAligned = Eigen::AlignedBox<real, m>;
 
 auto cross(Matrix<3, 1> const& v0, Matrix<3, 1> const& v1)
 	-> decltype(v0.cross(v1));
-template <std::size_t m, std::size_t n> auto
-norm(Matrix<m, n> const& mat) -> decltype(mat.norm());
-template <std::size_t m, std::size_t n> auto
+template <int m, int n> auto
+dot(Matrix<m, n> const& mat0, Matrix<m, n> const& mat1) -> decltype(mat0.dot(mat1));
+template <int m, int n> auto
+transpose(Matrix<m, n> const& mat) -> decltype(mat.transpose());
+template <int m, int n> auto
+conj(Matrix<m, n> const& mat) -> decltype(mat.conjugate());
+template <int m, int n> auto
+norm2(Matrix<m, n> const& mat) -> decltype(mat.norm());
+template <int m, int n> auto
+norm2Sq(Matrix<m, n> const& mat) -> decltype(mat.squaredNorm());
+template <int m, int n> auto
 unit(Matrix<m, n> const& mat) -> decltype(mat.normalized());
 
 template <int m> BoxAxisAligned<m>&
@@ -54,12 +62,32 @@ cross(Matrix<3, 1> const& v0, Matrix<3, 1> const& v1) -> decltype(v0.cross(v1))
 {
 	return v0.cross(v1);
 }
-template <std::size_t m, std::size_t n> inline auto
-norm(Matrix<m, n> const& mat) -> decltype(mat.norm())
+template <int m, int n> inline auto
+dot(Matrix<m, n> const& mat0, Matrix<m, n> const& mat1) -> decltype(mat0.dot(mat1))
+{
+	return mat0.dot(mat1);
+}
+template <int m, int n> inline auto
+transpose(Matrix<m, n> const& mat) -> decltype(mat.transpose())
+{
+	return mat.transpose();
+}
+template <int m, int n> inline auto
+conj(Matrix<m, n> const& mat) -> decltype(mat.conjugate())
+{
+	return mat.conjugate();
+}
+template <int m, int n> inline auto
+norm2(Matrix<m, n> const& mat) -> decltype(mat.norm())
 {
 	return mat.norm();
 }
-template <std::size_t m, std::size_t n> inline auto
+template <int m, int n> inline auto
+norm2Sq(Matrix<m, n> const& mat) -> decltype(mat.squaredNorm())
+{
+	return mat.squaredNorm();
+}
+template <int m, int n> inline auto
 unit(Matrix<m, n> const& mat) -> decltype(mat.normalized())
 {
 	return mat.normalized();
