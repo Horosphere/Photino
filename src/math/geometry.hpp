@@ -2,7 +2,6 @@
 #define PHOTINO_MATH_GEOMETRY_HPP_
 
 #include <Eigen/Dense>
-#include <Eigen/Geometry>
 
 #include "../core/photino.hpp"
 
@@ -13,7 +12,7 @@
 namespace photino
 {
 
-template <std::size_t m, std::size_t n>
+template <std::size_t m, std::size_t n = m>
 using Matrix = Eigen::Matrix<real, m, n>;
 template <std::size_t m>
 using Vector = Eigen::Matrix<real, m, 1>;
@@ -40,6 +39,8 @@ transpose(Matrix<m, n> const& mat) -> decltype(mat.transpose());
 template <int m, int n> auto
 conj(Matrix<m, n> const& mat) -> decltype(mat.conjugate());
 template <int m, int n> auto
+inverse(Matrix<m, n> const& mat) -> decltype(mat.inverse());
+template <int m, int n> auto
 norm2(Matrix<m, n> const& mat) -> decltype(mat.norm());
 template <int m, int n> auto
 norm2Sq(Matrix<m, n> const& mat) -> decltype(mat.squaredNorm());
@@ -54,6 +55,15 @@ template <int m> BoxAxisAligned<m>
 operator|(BoxAxisAligned<m> const&, BoxAxisAligned<m> const&);
 template <int m> BoxAxisAligned<m>
 operator&(BoxAxisAligned<m> const&, BoxAxisAligned<m> const&);
+
+template <int m> real
+maxExtent(BoxAxisAligned<m> const&);
+/**
+ * @tparam m Dimension
+ * @param[dim] The dimensional index of the longest axis. Cannot be nullptr.
+ */
+template <int m> real
+maxExtent(BoxAxisAligned<m> const&, int* dim);
 
 
 // Implementations
@@ -76,6 +86,11 @@ template <int m, int n> inline auto
 conj(Matrix<m, n> const& mat) -> decltype(mat.conjugate())
 {
 	return mat.conjugate();
+}
+template <int m, int n> inline auto
+inverse(Matrix<m, n> const& mat) -> decltype(mat.inverse())
+{
+	return mat.inverse();
 }
 template <int m, int n> inline auto
 norm2(Matrix<m, n> const& mat) -> decltype(mat.norm())
@@ -112,6 +127,17 @@ template <int m> inline BoxAxisAligned<m>
 operator&(BoxAxisAligned<m> const& b0, BoxAxisAligned<m> const& b1)
 {
 	return b0.intersection(b1);
+}
+
+template <int m> inline real
+maxExtent(BoxAxisAligned<m> const& b)
+{
+	return b.sizes().maxCoeff();
+}
+template <int m> inline real
+maxExtent(BoxAxisAligned<m> const& b, int* index)
+{
+	return b.sizes().maxCoeff(index);
 }
 
 } // namespace photino
