@@ -47,12 +47,16 @@ norm2Sq(Matrix<m, n> const& mat) -> decltype(mat.squaredNorm());
 template <int m, int n> auto
 unit(Matrix<m, n> const& mat) -> decltype(mat.normalized());
 
+Quaternion slerp(Quaternion const&, Quaternion const&, real);
+
 template <int m> BoxAxisAligned<m>&
 operator|=(BoxAxisAligned<m>&, BoxAxisAligned<m> const&);
 template <int m> BoxAxisAligned<m>&
+operator|=(BoxAxisAligned<m>&, Point<m> const&);
+template <int m> BoxAxisAligned<m>&
 operator&=(BoxAxisAligned<m>&, BoxAxisAligned<m> const&);
 template <int m> BoxAxisAligned<m>
-operator|(BoxAxisAligned<m> const&, BoxAxisAligned<m> const&);
+operator|(BoxAxisAligned<m>, Point<m> const&);
 template <int m> BoxAxisAligned<m>
 operator&(BoxAxisAligned<m> const&, BoxAxisAligned<m> const&);
 
@@ -107,11 +111,20 @@ unit(Matrix<m, n> const& mat) -> decltype(mat.normalized())
 {
 	return mat.normalized();
 }
+inline Quaternion slerp(Quaternion const& q0, Quaternion const& q1, real t)
+{
+	return q0.slerp(t, q1);
+}
 
 template <int m> inline BoxAxisAligned<m>&
 operator|=(BoxAxisAligned<m>& b0, BoxAxisAligned<m> const& b1)
 {
 	return b0.extend(b1);
+}
+template <int m> inline BoxAxisAligned<m>&
+operator|=(BoxAxisAligned<m>& b, Point<m> const& p)
+{
+	return b.extend(p);
 }
 template <int m> inline BoxAxisAligned<m>&
 operator&=(BoxAxisAligned<m>& b0, BoxAxisAligned<m> const& b1)
@@ -122,6 +135,11 @@ template <int m> inline BoxAxisAligned<m>
 operator|(BoxAxisAligned<m> const& b0, BoxAxisAligned<m> const& b1)
 {
 	return b0.merged(b1);
+}
+template <int m> inline BoxAxisAligned<m>
+operator|(BoxAxisAligned<m> b, Point<m> const& p)
+{
+	return b.extend(p);
 }
 template <int m> inline BoxAxisAligned<m>
 operator&(BoxAxisAligned<m> const& b0, BoxAxisAligned<m> const& b1)
