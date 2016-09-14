@@ -10,6 +10,18 @@
 namespace photino
 {
 
+template <typename S, typename T> T
+lerp(S const& time, T const& t0, T const& t1);
+
+
+// Implementations
+
+template <typename S, typename T> inline T
+lerp(S const& time, T const& t0, T const& t1)
+{
+	return (1 - time) * t0 + time * t1;
+}
+
 } // namespace photino
 
 #endif // !PHOTINO_MATH_NUMBERS_HPP_

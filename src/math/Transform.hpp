@@ -2,53 +2,63 @@
 #define PHOTINO_MATH_TRANSFORM_HPP_
 
 #include "geometry.hpp"
+#include "RayDifferential.hpp"
 
 namespace photino
 {
 
-template <int m, int type>
+template <int dim, int type>
 class Transform final
 {
 public:
-	static Transform<m, type> identity();
+	static Transform<dim, type> identity();
 
 	Transform() noexcept {}
 	/**
 	 * @warning Result undefined if the given matrix is singular.
 	 */
-	Transform(Matrix<m> const&);
+	Transform(Matrix<dim> const&);
 	/**
 	 * @warning Result undefined if the given matrix is singular.
 	 */
-	Transform(Matrix<m + 1> const&);
+	Transform(Matrix<dim + 1> const&);
 	/**
 	 * @warning The two matrices must be inverse of each other.
 	 */
-	Transform(Matrix<m> const&, Matrix<m> const&) noexcept;
+	Transform(Matrix<dim> const&, Matrix<dim> const&) noexcept;
 	/**
 	 * @warning The two matrices must be inverse of each other.
 	 */
-	Transform(Matrix<m + 1> const&, Matrix<m + 1> const&) noexcept;
+	Transform(Matrix<dim + 1> const&, Matrix<dim + 1> const&) noexcept;
 
-	Matrix<m + 1> const& matrix() const;
-	Matrix<m + 1> const& inverseMatrix() const;
+	Matrix<dim> linear() const;
+	Matrix<dim> inverseLinear() const;
+	Vector<dim> translation() const;
+
 	bool swapsChirality() const;
 
-	Transform<m, type>& translate(Vector<m> const&);
-	Transform<m, type>& scale(Vector<m> const&);
-	template <typename Rotation> Transform<m, type>&
+	Transform<dim, type>& translate(Vector<dim> const&);
+	Transform<dim, type>& scale(Vector<dim> const&);
+	template <typename Rotation> Transform<dim, type>&
 	rotate(Rotation const&);
-	Transform<m, type>& operator*=(Transform<m, type> const&);
+	Transform<dim, type>& operator*=(Transform<dim, type> const&);
 
-	Point<m> trPoint(Point<m> const&) const;
-	Vector<m> trVector(Vector<m> const&) const;
-	Normal<m> trNormal(Normal<m> const&) const;
-	Ray<m> trRay(Ray<m> const&) const;
-	BoxAxisAligned<m> trBoxAA(BoxAxisAligned<m> const&) const;
+	Point<dim> trPoint(Point<dim> const&) const;
+	Vector<dim> trVector(Vector<dim> const&) const;
+	Normal<dim> trNormal(Normal<dim> const&) const;
+	Ray<dim> trRay(Ray<dim> const&) const;
+	RayDifferential<dim> trRayD(RayDifferential<dim> const&) const;
+	BoxAxisAligned<dim> trBoxAA(BoxAxisAligned<dim> const&) const;
 
 private:
-	Eigen::Transform<real, m, type> mat;
-	Eigen::Transform<real, m, type> invMat;
+	/**
+	 * The transforms must be inverses of each other.
+	 */
+	Transform(Eigen::Transform<real, dim, type> const&,
+	          Eigen::Transform<real, dim, type> const&);
+
+	Eigen::Transform<real, dim, type> mat;
+	Eigen::Transform<real, dim, type> invMat;
 
 	template <int n, int ty>
 	friend Transform<n, ty> inverse(Transform<n, ty> const&) noexcept;
@@ -56,163 +66,212 @@ private:
 	operator==(Transform<n, ty> const&, Transform<n, ty> const&);
 	template <int n, int ty> friend bool
 	operator!=(Transform<n, ty> const&, Transform<n, ty> const&);
-	template <int n, int ty0, int ty1> friend Transform<m, ty0>
-	operator*(Transform<m, ty0> const&, Transform<m, ty1> const&);
+	template <int n, int ty0, int ty1> friend Transform<dim, ty0>
+	operator*(Transform<dim, ty0> const&, Transform<dim, ty1> const&);
 };
 
 
-template <int m, int type> bool
-operator==(Transform<m, type> const&, Transform<m, type> const&);
-template <int m, int type> bool
-operator!=(Transform<m, type> const&, Transform<m, type> const&);
+template <int dim, int type> bool
+operator==(Transform<dim, type> const&, Transform<dim, type> const&);
+template <int dim, int type> bool
+operator!=(Transform<dim, type> const&, Transform<dim, type> const&);
 
-template <int m, int type0, int type1> Transform<m, type0>
-operator*(Transform<m, type0> const&, Transform<m, type1> const&);
+template <int dim> Transform<dim, Eigen::AffineCompact>
+operator*(Transform<dim, Eigen::AffineCompact> const&,
+          Transform<dim, Eigen::AffineCompact> const&);
+template <int dim> Transform<dim, Eigen::Projective>
+operator*(Transform<dim, Eigen::Projective> const&,
+          Transform<dim, Eigen::AffineCompact> const&);
+template <int dim> Transform<dim, Eigen::Projective>
+operator*(Transform<dim, Eigen::AffineCompact> const&,
+          Transform<dim, Eigen::Projective> const&);
+template <int dim> Transform<dim, Eigen::Projective>
+operator*(Transform<dim, Eigen::Projective> const&,
+          Transform<dim, Eigen::Projective> const&);
 
-template <int m, int type> Transform<m, type>
-inverse(Transform<m, type> const&) noexcept;
+template <int dim, int type> Transform<dim, type>
+inverse(Transform<dim, type> const&) noexcept;
 
 
-template <int m>
-using TransformAffine = Transform<m, Eigen::AffineCompact>;
-template <int m>
-using TransformProjective = Transform<m, Eigen::Projective>;
+template <int dim>
+using TransformAffine = Transform<dim, Eigen::AffineCompact>;
+template <int dim>
+using TransformProjective = Transform<dim, Eigen::Projective>;
 
 // Implementations
 
-template <int m, int type> inline Transform<m, type>
-Transform<m, type>::identity()
+template <int dim, int type> inline Transform<dim, type>
+Transform<dim, type>::identity()
 {
-	Transform<m, type> result;
-	result.invMat = result.mat = Eigen::Transform<real, m, type>::Identity();
+	Transform<dim, type> result;
+	result.invMat = result.mat = Eigen::Transform<real, dim, type>::Identity();
 	return result;
 }
 
-template <int m, int type> inline
-Transform<m, type>::Transform(Matrix<m> const& mat):
-	mat(mat), invMat(inverse(mat))
+template <int dim, int type> inline
+Transform<dim, type>::Transform(Matrix<dim> const& m):
+	mat(m), invMat(m.inverse().eval())
 {
 }
-template <int m, int type> inline
-Transform<m, type>::Transform(Matrix<m + 1> const& mat):
-	mat(mat), invMat(inverse(mat))
+template <int dim, int type> inline
+Transform<dim, type>::Transform(Matrix<dim + 1> const& m):
+	mat(m), invMat(m.inverse().eval())
 {
 }
-template <int m, int type> inline
-Transform<m, type>::Transform(Matrix<m> const& mat,
-                              Matrix<m> const& invMat) noexcept:
-	mat(mat), invMat(invMat)
+template <int dim, int type> inline
+Transform<dim, type>::Transform(Matrix<dim> const& m,
+                              Matrix<dim> const& invM) noexcept:
+	mat(m), invMat(invM)
 {
 }
-template <int m, int type> inline
-Transform<m, type>::Transform(Matrix<m + 1> const& mat,
-                              Matrix<m + 1> const& invMat) noexcept:
-	mat(mat), invMat(invMat)
+template <int dim, int type> inline
+Transform<dim, type>::Transform(Matrix<dim + 1> const& m,
+                              Matrix<dim + 1> const& invM) noexcept:
+	mat(m), invMat(invM)
 {
 }
-template <int m, int type> inline Matrix<m + 1> const&
-Transform<m, type>::matrix() const
+template <int dim, int type> inline Matrix<dim>
+Transform<dim, type>::linear() const
 {
-	return mat.matrix();
+	return mat.linear();
 }
-template <int m, int type> inline Matrix<m + 1> const&
-Transform<m, type>::inverseMatrix() const
+template <int dim, int type> inline Matrix<dim>
+Transform<dim, type>::inverseLinear() const
 {
-	return invMat.matrix();
+	return invMat.linear();
 }
-template <int m, int type> inline bool
-Transform<m, type>::swapsChirality() const
+template <int dim, int type> inline Vector<dim>
+Transform<dim, type>::translation() const
+{
+	return mat.translation();
+}
+template <int dim, int type> inline bool
+Transform<dim, type>::swapsChirality() const
 {
 	return mat.linear().determinant() < 0;
 }
 
-template <int m, int type> inline Transform<m, type>&
-Transform<m, type>::translate(Vector<m> const& v)
+template <int dim, int type> inline Transform<dim, type>&
+Transform<dim, type>::translate(Vector<dim> const& v)
 {
 	mat.translate(v);
 	invMat.translate(-v);
 	return *this;
 }
-template <int m, int type> inline Transform<m, type>&
-Transform<m, type>::scale(Vector<m> const& v)
+template <int dim, int type> inline Transform<dim, type>&
+Transform<dim, type>::scale(Vector<dim> const& v)
 {
 	mat.scale(v);
 	invMat.scale(v.cwiseInverse());
 	return *this;
 }
-template <int m, int type>
-template <typename Rotation> inline Transform<m, type>&
-Transform<m, type>::rotate(Rotation const& rotation)
+template <int dim, int type>
+template <typename Rotation> inline Transform<dim, type>&
+Transform<dim, type>::rotate(Rotation const& rotation)
 {
-	Matrix<m> rotationMatrix = rotation.toRotationMatrix();
-	mat = mat * Eigen::Transform<real, m, Eigen::Affine>(rotationMatrix);
-	invMat = invMat * Eigen::Transform<real, m, Eigen::Affine>(rotationMatrix.transpose());
+	Matrix<dim> rotationMatrix = rotation.toRotationMatrix();
+	mat = mat * Eigen::Transform<real, dim, Eigen::Affine>(rotationMatrix);
+	invMat = Eigen::Transform<real, dim, Eigen::Affine>(rotationMatrix.transpose()) * invMat;
 	return *this;
 }
-template <int m, int type> inline Transform<m, type>&
-Transform<m, type>::operator*=(Transform<m, type> const& t)
+template <int dim, int type> inline Transform<dim, type>&
+Transform<dim, type>::operator*=(Transform<dim, type> const& t)
 {
 	mat = mat * t.mat;
 	invMat = t.invMat * invMat;
 	return *this;
 }
 
-template <int m, int type> Point<m>
-Transform<m, type>::trPoint(Point<m> const& p) const
+template <int dim, int type> Point<dim>
+Transform<dim, type>::trPoint(Point<dim> const& p) const
 {
 	return mat * p;
 }
-template <int m, int type> inline Vector<m>
-Transform<m, type>::trVector(Vector<m> const& v) const
+template <int dim, int type> inline Vector<dim>
+Transform<dim, type>::trVector(Vector<dim> const& v) const
 {
 	return mat.linear() * v;
 }
-template <int m, int type> inline Normal<m>
-Transform<m, type>::trNormal(Normal<m> const& n) const
+template <int dim, int type> inline Normal<dim>
+Transform<dim, type>::trNormal(Normal<dim> const& n) const
 {
 	return invMat.linear().transpose() * n;
 }
-template <int m, int type> inline Ray<m>
-Transform<m, type>::trRay(Ray<m> const& r) const
+template <int dim, int type> inline Ray<dim>
+Transform<dim, type>::trRay(Ray<dim> const& r) const
 {
-	return Ray<m>(trPoint(r.origin()), trVector(r.direction()));
+	return Ray<dim>(trPoint(r.origin()), trVector(r.direction()));
 }
-template <int m, int type> inline BoxAxisAligned<m>
-Transform<m, type>::trBoxAA(BoxAxisAligned<m> const& b) const
+template <int dim, int type> inline RayDifferential<dim>
+Transform<dim, type>::trRayD(RayDifferential<dim> const& rd) const
 {
-	assert(m == 3 && "Not implemented for dimensions other than 3");
-	BoxAxisAligned<m> result(trPoint(b.corner(BoxAxisAligned<m>::BottomLeftFloor)));
-	result |= trPoint(b.corner(BoxAxisAligned<m>::BottomLeftCeil));
-	result |= trPoint(b.corner(BoxAxisAligned<m>::BottomRightFloor));
-	result |= trPoint(b.corner(BoxAxisAligned<m>::BottomRightCeil));
-	result |= trPoint(b.corner(BoxAxisAligned<m>::TopLeftFloor));
-	result |= trPoint(b.corner(BoxAxisAligned<m>::TopLeftCeil));
-	result |= trPoint(b.corner(BoxAxisAligned<m>::TopRightFloor));
-	result |= trPoint(b.corner(BoxAxisAligned<m>::TopRightCeil));
+	return RayDifferential<dim>(trRay(rd.rx), trRay(rd.ry));
+}
+template <int dim, int type> inline BoxAxisAligned<dim>
+Transform<dim, type>::trBoxAA(BoxAxisAligned<dim> const& b) const
+{
+	assert(dim == 3 && "Not implemented for dimensions other than 3");
+	BoxAxisAligned<dim> result(trPoint(b.corner(BoxAxisAligned<dim>::BottomLeftFloor)));
+	result |= trPoint(b.corner(BoxAxisAligned<dim>::BottomLeftCeil));
+	result |= trPoint(b.corner(BoxAxisAligned<dim>::BottomRightFloor));
+	result |= trPoint(b.corner(BoxAxisAligned<dim>::BottomRightCeil));
+	result |= trPoint(b.corner(BoxAxisAligned<dim>::TopLeftFloor));
+	result |= trPoint(b.corner(BoxAxisAligned<dim>::TopLeftCeil));
+	result |= trPoint(b.corner(BoxAxisAligned<dim>::TopRightFloor));
+	result |= trPoint(b.corner(BoxAxisAligned<dim>::TopRightCeil));
 	return result;
 }
 
-template <int m, int type> inline bool
-operator==(Transform<m, type> const& t0, Transform<m, type> const& t1)
+template <int dim, int type> inline
+Transform<dim, type>::Transform(Eigen::Transform<real, dim, type> const& mat,
+                              Eigen::Transform<real, dim, type> const& invMat):
+	mat(mat), invMat(invMat)
+{
+}
+
+template <int dim, int type> inline bool
+operator==(Transform<dim, type> const& t0, Transform<dim, type> const& t1)
 {
 	return t0.mat == t1.mat;
 }
-template <int m, int type> bool
-operator!=(Transform<m, type> const& t0, Transform<m, type> const& t1)
+template <int dim, int type> bool
+operator!=(Transform<dim, type> const& t0, Transform<dim, type> const& t1)
 {
 	return t0.mat != t1.mat;
 }
-template <int m, int type0, int type1> Transform<m, type0>
-operator*(Transform<m, type0> const& t0, Transform<m, type1> const& t1)
+template <int dim> Transform<dim, Eigen::AffineCompact>
+operator*(Transform<dim, Eigen::AffineCompact> const& t0,
+          Transform<dim, Eigen::AffineCompact> const& t1)
 {
-	return Transform<m, type0>(t0.mat * t1.mat,
-	                           t1.invMat * t0.invMat);
+	return Transform<dim, Eigen::AffineCompact>(t0.mat * t1.mat,
+	       t1.invMat * t0.invMat);
+}
+template <int dim> Transform<dim, Eigen::Projective>
+operator*(Transform<dim, Eigen::Projective> const& t0,
+          Transform<dim, Eigen::AffineCompact> const& t1)
+{
+	return Transform<dim, Eigen::Projective>(t0.mat * t1.mat,
+	                                       t1.invMat * t0.invMat);
+}
+template <int dim> Transform<dim, Eigen::Projective>
+operator*(Transform<dim, Eigen::AffineCompact> const& t0,
+          Transform<dim, Eigen::Projective> const& t1)
+{
+	return Transform<dim, Eigen::Projective>(t0.mat * t1.mat,
+	                                       t1.invMat * t0.invMat);
+}
+template <int dim> Transform<dim, Eigen::Projective>
+operator*(Transform<dim, Eigen::Projective> const& t0,
+          Transform<dim, Eigen::Projective> const& t1)
+{
+	return Transform<dim, Eigen::Projective>(t0.mat * t1.mat,
+	                                       t1.invMat * t0.invMat);
 }
 
-template <int m, int type> inline Transform<m, type>
-inverse(Transform<m, type> const& t) noexcept
+template <int dim, int type> inline Transform<dim, type>
+inverse(Transform<dim, type> const& t) noexcept
 {
-	return Transform<m, type>(t.invMat, t.mat);
+	return Transform<dim, type>(t.invMat, t.mat);
 }
 
 } // namespace photino

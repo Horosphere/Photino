@@ -37,6 +37,7 @@ include_directories(${EIGEN3_INCLUDE_DIR})
 # Auto-generated. Do not edit. All changes will be undone
 set(SourceFiles
     ${PROJECT_SOURCE_DIR}/main.cpp
+    ${PROJECT_SOURCE_DIR}/math/InterpTransform3.cpp
    )
 # Auto-generated end
 
